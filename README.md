@@ -47,7 +47,7 @@ python main.py
 ☁️ Run on Google Colab
 Copy the script into a Google Colab notebook
 
-Upload your audio folder to the runtime
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/adigayung/vocal-extractor-ui/blob/main/colab.ipynb)
 
 The app will automatically launch with a public URL using Gradio share=True
 
