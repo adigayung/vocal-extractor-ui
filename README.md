@@ -47,7 +47,7 @@ python main.py
 ☁️ Run on Google Colab
 Copy the script into a Google Colab notebook
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/adigayung/vocal-extractor-ui/main/colab.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/adigayung/vocal-extractor-ui/main/colab.ipynb) 
 
 The app will automatically launch with a public URL using Gradio share=True
 
