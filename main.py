@@ -11,7 +11,36 @@ except ImportError:
     IS_COLAB = False
 
 OUTPUT_DIR = "output"
+os.makedirs(OUTPUT_DIR, exist_ok=True)
 
+# 🔹 Fungsi ekstrak vokal dari satu file
+def extract_vocals_single(file):
+    if file is None:
+        return None, "❌ Tidak ada file dipilih."
+
+    filename = os.path.splitext(os.path.basename(file.name))[0]
+
+    command = [
+        "demucs",
+        "--two-stems", "vocals",
+        "--out", OUTPUT_DIR,
+        file.name
+    ]
+    try:
+        subprocess.run(command, check=True)
+    except subprocess.CalledProcessError as e:
+        return None, f"❌ Gagal memproses file: {file.name}\n\n{str(e)}"
+
+    src = os.path.join(OUTPUT_DIR, "htdemucs", filename, "vocals.wav")
+    dest = os.path.join(OUTPUT_DIR, f"{filename}.wav")
+    if os.path.exists(src):
+        shutil.move(src, dest)
+        return dest, f"✅ Vokal berhasil diekstrak: {dest}"
+    else:
+        return None, "❌ File vokal tidak ditemukan setelah proses."
+
+
+# 🔹 Fungsi ekstrak dari folder path (bulk)
 def extract_vocals_from_folder(folder_path):
     if not os.path.isdir(folder_path):
         return "❌ Folder tidak ditemukan."
@@ -19,8 +48,6 @@ def extract_vocals_from_folder(folder_path):
     audio_files = [f for f in os.listdir(folder_path) if f.endswith((".mp3", ".wav"))]
     if not audio_files:
         return "⚠️ Tidak ada file audio di folder tersebut."
-
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     processed = 0
     for file in audio_files:
@@ -38,7 +65,6 @@ def extract_vocals_from_folder(folder_path):
         except subprocess.CalledProcessError as e:
             return f"❌ Gagal memproses file: {file}\n\n{str(e)}"
 
-        # Move hasil vokal ke direktori output utama
         src = os.path.join(OUTPUT_DIR, "htdemucs", filename, "vocals.wav")
         dest = os.path.join(OUTPUT_DIR, f"{filename}.wav")
         if os.path.exists(src):
@@ -47,14 +73,23 @@ def extract_vocals_from_folder(folder_path):
 
     return f"✅ Berhasil memproses {processed} file audio.\nHasil disimpan di folder `./{OUTPUT_DIR}`"
 
-# Setup Gradio UI
-demo = gr.Interface(
-    fn=extract_vocals_from_folder,
-    inputs=gr.Textbox(label="Path Folder Audio"),
-    outputs=gr.Textbox(label="Status"),
-    title="🎤 Vocal Extractor UI",
-    description="Masukkan path ke folder berisi file .mp3/.wav untuk mengekstrak vokal saja."
-)
+# 🔹 UI Gradio
+with gr.Blocks(title="🎤 Vocal Extractor UI") as demo:
+    gr.Markdown("## 🎶 Vocal Extractor UI")
 
-# Jalankan dengan atau tanpa share tergantung platform
+    with gr.Tabs():
+        with gr.TabItem("🎧 Single File Extractor"):
+            audio_input = gr.File(label="Upload audio file (.mp3 / .wav)", type="filepath")
+            single_audio = gr.Audio(label="🔊 Hasil Vokal (preview)", type="filepath")
+            single_output = gr.Textbox(label="Status")
+            extract_btn = gr.Button("Ekstrak Vokal")
+            extract_btn.click(fn=extract_vocals_single, inputs=audio_input, outputs=[single_audio, single_output])
+
+        with gr.TabItem("📂 Folder Bulk Extractor"):
+            folder_path = gr.Textbox(label="Path Folder Audio")
+            bulk_output = gr.Textbox(label="Status")
+            bulk_btn = gr.Button("Ekstrak Semua")
+            bulk_btn.click(fn=extract_vocals_from_folder, inputs=folder_path, outputs=bulk_output)
+
+# Jalankan Gradio UI
 demo.launch(share=IS_COLAB)
